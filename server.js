@@ -11,8 +11,6 @@ const wsServer= new WebSocketServer({
     httpServer: httpServer
 })
 
-
-
 wsServer.on('request', request => {
     const connection= request.accept()
     const id= Math.floor(Math.random() * 100)
