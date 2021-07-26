@@ -13,7 +13,7 @@ startButton.addEventListener('click', async () => {
     // videoElement.srcObject= stream
     // video.play()
 
-    // creating SDP offer
+    // creating SDP offer (Session Description Protocol)
     const offer= await peerConnection.createOffer()
 
     // setting local description
