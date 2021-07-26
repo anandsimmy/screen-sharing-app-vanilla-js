@@ -2,9 +2,25 @@ const videoElement= document.getElementById('video')
 const startButton= document.getElementById('start')
 
 startButton.addEventListener('click', async () => {
-    const stream= await window.navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-    videoElement.srcObject= stream
-    video.play()
+    const signaling= new WebSocket('ws://127.0.0.1:1337')
+
+    // creating peer connection
+    const peerConnection= new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.test.com:19000' }] })
+
+    // adding audio and video tracks to peer connection
+    const stream= await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream))
+    // videoElement.srcObject= stream
+    // video.play()
+
+    // creating SDP offer
+    const offer= await peerConnection.createOffer()
+
+    // setting local description
+    await peerConnection.setLocalDescription(offer)
+
+    // sending offer
+    signaling.send(JSON.stringify({ message_type: MESSAGE_TYPE.SDP, content: offer }))
 })
 
 let connection;
