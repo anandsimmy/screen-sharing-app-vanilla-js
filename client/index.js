@@ -41,7 +41,7 @@ const createPeerConnection= (signaling, stream) => {
 
     peerConnection.ontrack= (event) => {
         if(!userVideo.srcObject){
-            userVideo.srcObject= event.streams[0]
+            // userVideo.srcObject= event.streams[0]
         }
     }
 }
