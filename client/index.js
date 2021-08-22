@@ -12,7 +12,7 @@ startButton.addEventListener('click', async () => {
 
     // adding audio and video tracks to peer connection
     const stream= await navigator.mediaDevices.getUserMedia({ audio: false, video: true })
-    // myVideo.srcObject= stream
+    myVideo.srcObject= stream
 
     createPeerConnection(signaling, stream)
 })
