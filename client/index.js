@@ -2,6 +2,8 @@ const myVideo= document.getElementById('my-video')
 const userVideo= document.getElementById('user-video')
 const startButton= document.getElementById('start')
 
+let code= 1234;
+
 const MESSAGE_TYPE= {
     SDP: 'SDP',
     CANDIDATE: 'CANDIDATE',
@@ -12,10 +14,18 @@ startButton.addEventListener('click', async () => {
 
     // adding audio and video tracks to peer connection
     const stream= await navigator.mediaDevices.getUserMedia({ audio: false, video: true })
-    // myVideo.srcObject= stream
+    myVideo.srcObject= stream
 
     createPeerConnection(signaling, stream)
 })
+
+const sendMessage= (signaling, message) => {
+    signaling.send(
+        JSON.stringify({
+            ...message,
+            code
+    }))
+}
 
 const createPeerConnection= (signaling, stream) => {
     // creating peer connection
@@ -32,11 +42,10 @@ const createPeerConnection= (signaling, stream) => {
     }
 
     peerConnection.onicecandidate= (iceEvent) => {
-        signaling.send(
-            JSON.stringify({
+        sendMessage(signaling, {
                 message_type: MESSAGE_TYPE.CANDIDATE,
                 content: iceEvent.candidate
-        }))
+        })
     }
 
     peerConnection.ontrack= (event) => {
@@ -56,12 +65,10 @@ const addMessageHandler= (signaling, peerConnection) => {
                 await peerConnection.setRemoteDescription(content)
                 const answer= await peerConnection.createAnswer()
                 await peerConnection.setLocalDescription(answer)
-                signaling.send(
-                    JSON.stringify({
-                        message_type: MESSAGE_TYPE.SDP,
-                        content: answer
-                    })
-                )
+                sendMessage(signaling, {
+                    message_type: MESSAGE_TYPE.SDP,
+                    content: answer
+                })
             }
             else if(content.type ==='answer'){
                 peerConnection.setRemoteDescription(content)
@@ -81,10 +88,8 @@ const createAndSendOffer= async (signaling, peerConnection) => {
     await peerConnection.setLocalDescription(offer)
 
     // sending offer
-    signaling.send(
-        JSON.stringify({
-            message_type: MESSAGE_TYPE.SDP,
-            content: offer
-        })
-    )
+    sendMessage(signaling, {
+        message_type: MESSAGE_TYPE.SDP,
+        content: offer
+    })
 }
