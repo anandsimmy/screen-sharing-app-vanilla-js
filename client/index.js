@@ -1,8 +1,7 @@
 const myVideo= document.getElementById('my-video')
 const userVideo= document.getElementById('user-video')
 const startButton= document.getElementById('start')
-
-let code= 1234;
+const codeInput= document.getElementById('code')
 
 const MESSAGE_TYPE= {
     SDP: 'SDP',
@@ -10,6 +9,7 @@ const MESSAGE_TYPE= {
 }
 
 startButton.addEventListener('click', async () => {
+
     const signaling= new WebSocket('ws://127.0.0.1:1337')
 
     // adding audio and video tracks to peer connection
@@ -23,7 +23,7 @@ const sendMessage= (signaling, message) => {
     signaling.send(
         JSON.stringify({
             ...message,
-            code
+            code: codeInput.value
     }))
 }
 
