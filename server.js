@@ -1,6 +1,7 @@
 const http= require('http')
 const WebSocketServer= require('websocket').server
 let clients= []
+const peersByCode= {}
 
 const httpServer= http.createServer(() => {})
 httpServer.listen(1337, () => {
@@ -26,10 +27,17 @@ wsServer.on('request', request => {
 
     connection.on('message', message => {
         console.log('message',message)
-        clients
-            .filter(client => client.id !== id)
-            .forEach(client => client.connection.send(JSON.stringify({
-                client: id,
+        const { code }= JSON.parse(message.utf8Data)
+        console.log('peers', peersByCode[code]);
+        if(!peersByCode[code]){
+            peersByCode[code]= [{ connection, id }]
+        } else if (!peersByCode[code].find(peer => peer.id === id)){
+            peersByCode[code].push({ connection, id })
+        }
+        peersByCode[code]
+            .filter(peer => peer.id !== id)
+            .forEach(peer => peer.connection.send(JSON.stringify({
+                peer: id,
                 text: message.utf8Data
             })
         ))
