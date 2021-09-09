@@ -1,6 +1,7 @@
 const myVideo= document.getElementById('my-video')
 const userVideo= document.getElementById('user-video')
 const startButton= document.getElementById('start')
+const switchButton= document.getElementById('switch')
 const codeInput= document.getElementById('code')
 
 const MESSAGE_TYPE= {
@@ -8,15 +9,35 @@ const MESSAGE_TYPE= {
     CANDIDATE: 'CANDIDATE',
 }
 
+const senders= [];
+let userMediaStream= null
+let displayMediaStream= null;
+
 startButton.addEventListener('click', async () => {
 
     const signaling= new WebSocket('ws://127.0.0.1:1337')
 
     // adding audio and video tracks to peer connection
-    const stream= await navigator.mediaDevices.getUserMedia({ audio: false, video: true })
-    myVideo.srcObject= stream
+    userMediaStream= await navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+    myVideo.srcObject= userMediaStream
 
-    createPeerConnection(signaling, stream)
+    createPeerConnection(signaling, userMediaStream)
+})
+
+switchButton.addEventListener('click', async () => {
+    if(!displayMediaStream){
+        displayMediaStream= await navigator.mediaDevices.getDisplayMedia();
+    }
+    if(switchButton.innerText === 'Switch'){
+        senders.find(stream => stream.track.kind === 'video').replaceTrack(displayMediaStream.getTracks()[0])
+        switchButton.innerText= 'Video'
+    } else {
+        console.log('userMediaStream', userMediaStream.getTracks())
+        senders.find(stream => stream.track.kind === 'video').replaceTrack(
+            userMediaStream.getTracks().find(stream => stream.kind === 'video')
+        )
+        switchButton.innerText= 'Switch'
+    }
 })
 
 const sendMessage= (signaling, message) => {
@@ -27,13 +48,13 @@ const sendMessage= (signaling, message) => {
     }))
 }
 
-const createPeerConnection= (signaling, stream) => {
+const createPeerConnection= (signaling, userMediaStream) => {
     // creating peer connection
     const peerConnection= new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.test.com:19000' }]
     })
 
-    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream))
+    userMediaStream.getTracks().forEach(track => senders.push(peerConnection.addTrack(track, userMediaStream)))
 
     addMessageHandler(signaling, peerConnection)
 
